@@ -30,7 +30,6 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCP\IUser;
-use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 
 class Coordinator implements IClientLoginCoordinator {
@@ -50,7 +49,15 @@ class Coordinator implements IClientLoginCoordinator {
 	/** @var ITimeFactory */
 	private $timeFactory;
 
-	public function __construct(AccessTokenMapper $mapper, IProvider $tokenProvider, ISecureRandom $random, IConfig $config, ITimeFactory $timeFactory) {
+	/**
+	 * @param AccessTokenMapper $mapper
+	 * @param IProvider $tokenProvider
+	 * @param ISecureRandom $random
+	 * @param IConfig $config
+	 * @param ITimeFactory $timeFactory
+	 */
+	public function __construct(AccessTokenMapper $mapper, IProvider $tokenProvider, ISecureRandom $random,
+		IConfig $config, ITimeFactory $timeFactory) {
 		$this->mapper = $mapper;
 		$this->tokenProvider = $tokenProvider;
 		$this->random = $random;
@@ -58,6 +65,10 @@ class Coordinator implements IClientLoginCoordinator {
 		$this->timeFactory = $timeFactory;
 	}
 
+	/**
+	 * @param string $name client name
+	 * @return string new access token to identify async login process
+	 */
 	public function startClientLogin($name) {
 		$token = $this->random->generate(128);
 		$hashedToken = $this->hashToken($token);
@@ -73,6 +84,10 @@ class Coordinator implements IClientLoginCoordinator {
 		return $token;
 	}
 
+	/**
+	 * @param type $accessToken
+	 * @throws InvalidAccessTokenException
+	 */
 	public function finishClientLogin($accessToken, IUser $user) {
 		$hashedToken = $this->hashToken($accessToken);
 		try {
@@ -86,6 +101,12 @@ class Coordinator implements IClientLoginCoordinator {
 		$this->mapper->update($dbToken);
 	}
 
+	/**
+	 * @param string $accessToken
+	 * @throws InvalidAccessTokenException
+	 * @throws ClientLoginPendingException
+	 * @return string
+	 */
 	public function getClientToken($accessToken) {
 		$hashedToken = $this->hashToken($accessToken);
 		try {
@@ -117,8 +138,7 @@ class Coordinator implements IClientLoginCoordinator {
 		$token = $this->random->generate(128);
 		// TODO: find a way to get loginname+password
 		// TODO: what if there is no password? e.g. shibboleth SSO…
-		$this->tokenProvider->generateToken($token, $accessToken->getUid(), '?', '?', $accessToken->getClientName(),
-			IToken::PERMANENT_TOKEN);
+		$this->tokenProvider->generateToken($token, $accessToken->getUid(), '?', '?', $accessToken->getClientName(), IToken::PERMANENT_TOKEN);
 		return $token;
 	}
 

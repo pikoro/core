@@ -28,6 +28,7 @@ use OC\Authentication\Exceptions\InvalidAccessTokenException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -83,7 +84,7 @@ class AuthController extends Controller {
 			$user = $this->userSession->getUser();
 			$this->coordinator->finishClientLogin($accesstoken, $user);
 		} catch (InvalidAccessTokenException $ex) {
-			// TODO: for some reason this token is invalid -> redirect to default/login page? show error?
+			return new RedirectResponse($this->urlGenerator->linkToRoute('files.view.index'));
 		}
 		return new TemplateResponse('core', 'authsuccess', [], 'guest');
 	}
@@ -95,7 +96,6 @@ class AuthController extends Controller {
 	 * @param string $accesstoken
 	 */
 	public function status($accesstoken) {
-		// TODO: complete login if token is valid (generate client token and return it)
 		try {
 			$token = $this->coordinator->getClientToken($accesstoken);
 		} catch (ClientLoginPendingException $ex) {
