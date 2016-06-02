@@ -168,20 +168,18 @@ class FilesPlugin extends ServerPlugin {
 	 */
 	function checkMove($source, $destination) {
 		$sourceNode = $this->tree->getNodeForPath($source);
-		if ($sourceNode instanceof FutureFile) {
+		if (!$sourceNode instanceof Node) {
 			return;
 		}
 		list($sourceDir,) = \Sabre\HTTP\URLUtil::splitPath($source);
 		list($destinationDir,) = \Sabre\HTTP\URLUtil::splitPath($destination);
 
 		if ($sourceDir !== $destinationDir) {
-			$sourceFileInfo = $this->fileView->getFileInfo($source);
-
-			if ($sourceFileInfo === false) {
+			if (is_null($sourceNode) || is_null($sourceNode->getFileInfo())) {
 				throw new NotFound($source . ' does not exist');
 			}
 
-			if (!$sourceFileInfo->isDeletable()) {
+			if (!$sourceNode->getFileInfo()->isDeletable()) {
 				throw new Forbidden($source . " cannot be deleted");
 			}
 		}
