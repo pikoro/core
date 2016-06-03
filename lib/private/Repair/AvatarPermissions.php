@@ -71,9 +71,15 @@ class AvatarPermissions implements IRepairStep {
 			->from('storages')
 			->where($qb->expr()->like('id', $qb2->createParameter('like')));
 
+		// Nasty isNUll hack for oracle
+		$or = $qb2->expr()->orX(
+			$qb2->expr()->eq('path', $qb2->createNamedParameter('')),
+			$qb2->expr()->isNull('path')
+		);
+
 		$qb2->update('filecache')
 			->set('permissions', $qb2->createNamedParameter(23))
-			->where($qb2->expr()->eq('path', $qb2->createNamedParameter('')))
+			->where($or)
 			->andWhere($qb2->expr()->in('storage', $qb2->createFunction($qb->getSQL())))
 			->andWhere($qb2->expr()->neq('permissions', $qb2->createNamedParameter(23)))
 			->setParameter('like', 'home::%');
